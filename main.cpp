@@ -5,11 +5,7 @@
 #include <cctype>
 #include <sstream>
 
-// ------------------------------
-// Beginner-Friendly Vending Machine (Fixed)
-// - Uses functions and simple structs
-// - Robust input handling and alignment
-// ------------------------------
+
 
 struct Item {
     std::string code;    // e.g., "A1"
@@ -18,11 +14,10 @@ struct Item {
     int stock;           // number of items available
 };
 
-// Allowed UK coins (pence)
+// Allowed coins (pence)
 const int COINS[] = {200, 100, 50, 20, 10, 5};
 const int NUM_COINS = static_cast<int>(sizeof(COINS) / sizeof(COINS[0]));
 
-// --- Small helpers ---
 
 // Trim spaces from both ends
 std::string trim(const std::string& s) {
@@ -277,3 +272,4 @@ int main() {
 
     return 0;
 }
+
