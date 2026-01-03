@@ -5,21 +5,25 @@
 #include <cctype>
 #include <sstream>
 
-
-
+// ----------------------
+// Item structure 
+// ----------------------
 struct Item {
-    std::string code;    // e.g., "A1"
-    std::string name;    // e.g., "Coffee"
-    int pricePence;      // store money in pence to avoid float errors
-    int stock;           // number of items available
+    std::string code;
+    std::string name;
+    int pricePence;  // money in pence
+    int stock;
 };
 
-// Allowed coins (pence)
+// ----------------------
+// Allowed coins (pence) 
+// ----------------------
 const int COINS[] = {200, 100, 50, 20, 10, 5};
 const int NUM_COINS = static_cast<int>(sizeof(COINS) / sizeof(COINS[0]));
 
-
-// Trim spaces from both ends
+// ----------------------
+// Trim spaces
+// ----------------------
 std::string trim(const std::string& s) {
     const size_t a = s.find_first_not_of(" \t\r\n");
     if (a == std::string::npos) return "";
@@ -27,7 +31,9 @@ std::string trim(const std::string& s) {
     return s.substr(a, b - a + 1);
 }
 
-// Validate if input string contains only digits (for coin input)
+// ----------------------
+// Check if string is digits only
+// ----------------------
 bool isDigits(const std::string& s) {
     if (s.empty()) return false;
     for (unsigned char c : s) {
@@ -36,7 +42,9 @@ bool isDigits(const std::string& s) {
     return true;
 }
 
-// Convert to uppercase (for codes / commands)
+// ----------------------
+// Convert to uppercase
+// ----------------------
 std::string toUpper(std::string s) {
     for (char& ch : s) {
         ch = static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
@@ -44,44 +52,49 @@ std::string toUpper(std::string s) {
     return s;
 }
 
-// Format money as £x.xx into a string (no floating point)
-std::string poundsStr(int pence) {
-    std::ostringstream oss;
-    oss << "£" << (pence / 100) << "." << std::setw(2) << std::setfill('0') << (pence % 100);
-    return oss.str();
+// ----------------------
+// Format pence as "150p"
+// ----------------------
+std::string penceStr(int pence) {
+    return std::to_string(pence) + "p";
 }
 
-// Print money as £x.xx directly (no floating point)
-void printPounds(int pence) {
-    std::cout << "£" << (pence / 100) << "." << std::setw(2) << std::setfill('0') << (pence % 100);
-    std::cout << std::setfill(' '); // reset fill for later alignment output
+// ----------------------
+// Print pence directly
+// ----------------------
+void printPence(int pence) {
+    std::cout << pence << "p";
 }
 
-// Show the menu of items
+// ----------------------
+// Show menu 
+// ----------------------
 void showMenu(const std::vector<Item>& items, int balancePence) {
     std::cout << "\n========== VENDING MACHINE ==========\n";
     std::cout << "Balance: ";
-    printPounds(balancePence);
+    printPence(balancePence);
     std::cout << "\n-------------------------------------\n";
     std::cout << std::left << std::setw(6) << "Code"
               << std::left << std::setw(18) << "Item"
-              << std::right << std::setw(9) << "Price"
+              << std::right << std::setw(8) << "Price"
               << std::right << std::setw(8) << "Stock" << "\n";
     std::cout << "-------------------------------------\n";
 
     for (const auto& it : items) {
         std::cout << std::left << std::setw(6) << it.code
                   << std::left << std::setw(18) << it.name
-                  << std::right << std::setw(9) << poundsStr(it.pricePence)
+                  << std::right << std::setw(8) << penceStr(it.pricePence)
                   << std::right << std::setw(8) << it.stock << "\n";
     }
     std::cout << "-------------------------------------\n";
     std::cout << "Options: I) Insert money   S) Select item   R) Return change   Q) Quit\n";
 }
 
-// Insert coins into the machine
+// ----------------------
+// Insert coins 
+// ----------------------
 void insertMoney(int& balancePence) {
-    std::cout << "\nInsert coins (in pence): 5, 10, 20, 50, 100 (£1), 200 (£2)\n";
+    std::cout << "\nInsert coins (in pence): 5, 10, 20, 50, 100, 200\n";
     std::cout << "Type value in pence (e.g., 50) or 'done' to finish.\n";
 
     std::string input;
@@ -93,24 +106,20 @@ void insertMoney(int& balancePence) {
         if (input == "DONE") break;
 
         if (!isDigits(input)) {
-            std::cout << "  Invalid input. Please enter numbers like 5, 10, 50, 100, 200.\n";
+            std::cout << "  Invalid input. Please enter 5, 10, 20, 50, 100, or 200.\n";
             continue;
         }
 
         int p = 0;
-        try {
-            p = std::stoi(input);
-        } catch (...) {
+        try { p = std::stoi(input); }
+        catch (...) {
             std::cout << "  Invalid number.\n";
             continue;
         }
 
         bool allowed = false;
         for (int i = 0; i < NUM_COINS; ++i) {
-            if (COINS[i] == p) {
-                allowed = true;
-                break;
-            }
+            if (COINS[i] == p) { allowed = true; break; }
         }
 
         if (!allowed) {
@@ -120,12 +129,14 @@ void insertMoney(int& balancePence) {
 
         balancePence += p;
         std::cout << "  Added " << p << "p. New balance ";
-        printPounds(balancePence);
+        printPence(balancePence);
         std::cout << "\n";
     }
 }
 
-// Find item by code (returns index or -1)
+// ----------------------
+// Find item by code
+// ----------------------
 int findItemIndexByCode(const std::vector<Item>& items, const std::string& code) {
     const std::string target = toUpper(trim(code));
     for (size_t i = 0; i < items.size(); ++i) {
@@ -134,7 +145,9 @@ int findItemIndexByCode(const std::vector<Item>& items, const std::string& code)
     return -1;
 }
 
-// Make change using a simple greedy algorithm
+// ----------------------
+// Make change 
+// ----------------------
 std::vector<int> makeChange(int amountPence) {
     std::vector<int> counts(NUM_COINS, 0);
     int remaining = amountPence;
@@ -148,7 +161,9 @@ std::vector<int> makeChange(int amountPence) {
     return counts;
 }
 
-// Return change to the user
+// ----------------------
+// Return change
+// ----------------------
 void returnChange(int& balancePence) {
     if (balancePence <= 0) {
         std::cout << "No change to return.\n";
@@ -160,24 +175,22 @@ void returnChange(int& balancePence) {
     balancePence = 0;
 
     std::cout << "\n*** RETURNING CHANGE: ";
-    printPounds(total);
+    printPence(total);
     std::cout << " ***\n";
 
     for (int i = 0; i < NUM_COINS; ++i) {
         const int coin = COINS[i];
         const int cnt  = counts[i];
         if (cnt > 0) {
-            if (coin >= 100) {
-                std::cout << "  £" << (coin / 100) << " x " << cnt << "\n";
-            } else {
-                std::cout << "  " << coin << "p x " << cnt << "\n";
-            }
+            std::cout << "  " << coin << "p x " << cnt << "\n";
         }
     }
     std::cout << "***************************************\n";
 }
 
-// Handle selecting and dispensing an item
+// ----------------------
+// Select and dispense 
+// ----------------------
 void selectItem(std::vector<Item>& items, int& balancePence) {
     std::cout << "\nEnter item code (e.g., A1). Type 'back' to cancel.\n";
     std::cout << "Code: ";
@@ -201,7 +214,7 @@ void selectItem(std::vector<Item>& items, int& balancePence) {
 
     if (balancePence < it.pricePence) {
         const int needed = it.pricePence - balancePence;
-        std::cout << "  Insufficient funds. Need " << poundsStr(needed) << " more.\n";
+        std::cout << "  Insufficient funds. Need " << penceStr(needed) << " more.\n";
         return;
     }
 
@@ -209,8 +222,8 @@ void selectItem(std::vector<Item>& items, int& balancePence) {
     it.stock -= 1;
 
     std::cout << "\n*** DISPENSING: " << it.name << " (" << it.code << ") ***\n";
-    std::cout << "Price: " << poundsStr(it.pricePence)
-              << " | Remaining balance: " << poundsStr(balancePence) << "\n";
+    std::cout << "Price: " << penceStr(it.pricePence)
+              << " | Remaining balance: " << penceStr(balancePence) << "\n";
 
     if (balancePence > 0) {
         std::cout << "Return change now? (y/n): ";
@@ -224,6 +237,9 @@ void selectItem(std::vector<Item>& items, int& balancePence) {
     }
 }
 
+// ----------------------
+// Main 
+// ----------------------
 int main() {
     std::ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
@@ -272,4 +288,3 @@ int main() {
 
     return 0;
 }
-
