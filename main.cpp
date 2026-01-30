@@ -5,25 +5,25 @@
 #include <cctype>
 #include <sstream>
 
-// ----------------------
-// Item structure 
-// ----------------------
+// ----------------------------------------------------
+// STRUCT: Represents a vending machine item
+// ----------------------------------------------------
 struct Item {
-    std::string code;
-    std::string name;
-    int pricePence;  // money in pence
-    int stock;
+    std::string code;      
+    std::string name;       
+    int pricePence;         
+    int stock;              
 };
 
-// ----------------------
-// Allowed coins (pence) 
-// ----------------------
+// ----------------------------------------------------
+// Allowed coin values (in pence)
+// ----------------------------------------------------
 const int COINS[] = {200, 100, 50, 20, 10, 5};
 const int NUM_COINS = static_cast<int>(sizeof(COINS) / sizeof(COINS[0]));
 
-// ----------------------
-// Trim spaces
-// ----------------------
+// ----------------------------------------------------
+// Helper: Trim whitespace from start and end
+// ----------------------------------------------------
 std::string trim(const std::string& s) {
     const size_t a = s.find_first_not_of(" \t\r\n");
     if (a == std::string::npos) return "";
@@ -31,9 +31,9 @@ std::string trim(const std::string& s) {
     return s.substr(a, b - a + 1);
 }
 
-// ----------------------
-// Check if string is digits only
-// ----------------------
+// ----------------------------------------------------
+// Helper: Check if string contains only digits
+// ----------------------------------------------------
 bool isDigits(const std::string& s) {
     if (s.empty()) return false;
     for (unsigned char c : s) {
@@ -42,9 +42,9 @@ bool isDigits(const std::string& s) {
     return true;
 }
 
-// ----------------------
-// Convert to uppercase
-// ----------------------
+// ----------------------------------------------------
+// Helper: Convert string to uppercase
+// ----------------------------------------------------
 std::string toUpper(std::string s) {
     for (char& ch : s) {
         ch = static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
@@ -52,126 +52,129 @@ std::string toUpper(std::string s) {
     return s;
 }
 
-// ----------------------
-// Format pence as "150p"
-// ----------------------
+// ----------------------------------------------------
+// Converts pence integer to a formatted string (e.g. 150 -> "150p")
+// ----------------------------------------------------
 std::string penceStr(int pence) {
     return std::to_string(pence) + "p";
 }
 
-// ----------------------
-// Print pence directly
-// ----------------------
+// ----------------------------------------------------
+// Helper: Print pence without converting to string
+// ----------------------------------------------------
 void printPence(int pence) {
     std::cout << pence << "p";
 }
 
-// ----------------------
-// Show menu 
-// ----------------------
+// ----------------------------------------------------
+// Display the vending machine menu
+// Shows balance + list of all items
+// ----------------------------------------------------
 void showMenu(const std::vector<Item>& items, int balancePence) {
     std::cout << "\n========== VENDING MACHINE ==========\n";
     std::cout << "Balance: ";
     printPence(balancePence);
     std::cout << "\n-------------------------------------\n";
-    std::cout << std::left << std::setw(6) << "Code"
+
+    std::cout << std::left << std::setw(6)  << "Code"
               << std::left << std::setw(18) << "Item"
               << std::right << std::setw(8) << "Price"
               << std::right << std::setw(8) << "Stock" << "\n";
     std::cout << "-------------------------------------\n";
 
+    // Print each item
     for (const auto& it : items) {
-        std::cout << std::left << std::setw(6) << it.code
+        std::cout << std::left << std::setw(6)  << it.code
                   << std::left << std::setw(18) << it.name
                   << std::right << std::setw(8) << penceStr(it.pricePence)
                   << std::right << std::setw(8) << it.stock << "\n";
     }
+
     std::cout << "-------------------------------------\n";
     std::cout << "Options: I) Insert money   S) Select item   R) Return change   Q) Quit\n";
 }
 
-// ----------------------
-// Insert coins 
-// ----------------------
+// ----------------------------------------------------
+// Insert coins into the machine
+// Only accepts valid coin values
+// ----------------------------------------------------
 void insertMoney(int& balancePence) {
-    std::cout << "\nInsert coins (in pence): 5, 10, 20, 50, 100, 200\n";
-    std::cout << "Type value in pence (e.g., 50) or 'done' to finish.\n";
+    std::cout << "\nInsert coins (5, 10, 20, 50, 100, 200)\n";
+    std::cout << "Type a value in pence or 'done' to finish.\n";
 
     std::string input;
     while (true) {
-        std::cout << "Coin (pence) or 'done': ";
+        std::cout << "Coin (or 'done'): ";
         if (!std::getline(std::cin, input)) return;
 
         input = toUpper(trim(input));
+
         if (input == "DONE") break;
 
+        // Check digits
         if (!isDigits(input)) {
-            std::cout << "  Invalid input. Please enter 5, 10, 20, 50, 100, or 200.\n";
+            std::cout << "  Invalid input.\n";
             continue;
         }
 
-        int p = 0;
-        try { p = std::stoi(input); }
-        catch (...) {
-            std::cout << "  Invalid number.\n";
-            continue;
-        }
+        int p = std::stoi(input);
 
+        // Check if coin is allowed
         bool allowed = false;
-        for (int i = 0; i < NUM_COINS; ++i) {
-            if (COINS[i] == p) { allowed = true; break; }
-        }
+        for (int i = 0; i < NUM_COINS; ++i)
+            if (COINS[i] == p) allowed = true;
 
         if (!allowed) {
             std::cout << "  Unsupported coin: " << p << "p\n";
             continue;
         }
 
+        // Add coin to balance
         balancePence += p;
-        std::cout << "  Added " << p << "p. New balance ";
+        std::cout << "  Added " << p << "p. Balance now ";
         printPence(balancePence);
         std::cout << "\n";
     }
 }
 
-// ----------------------
-// Find item by code
-// ----------------------
+// ----------------------------------------------------
+// Find the index of an item by its code (case-insensitive)
+// ----------------------------------------------------
 int findItemIndexByCode(const std::vector<Item>& items, const std::string& code) {
     const std::string target = toUpper(trim(code));
     for (size_t i = 0; i < items.size(); ++i) {
-        if (toUpper(items[i].code) == target) return static_cast<int>(i);
+        if (toUpper(items[i].code) == target)
+            return static_cast<int>(i);
     }
     return -1;
 }
 
-// ----------------------
-// Make change 
-// ----------------------
+// ----------------------------------------------------
+// Make change using the largest coins first
+// Greedy algorithm (works for UK coin system)
+// ----------------------------------------------------
 std::vector<int> makeChange(int amountPence) {
     std::vector<int> counts(NUM_COINS, 0);
     int remaining = amountPence;
 
     for (int i = 0; i < NUM_COINS; ++i) {
-        const int coin = COINS[i];
-        const int take = remaining / coin;
-        counts[i] = take;
-        remaining -= take * coin;
+        counts[i] = remaining / COINS[i];  // number of coins
+        remaining -= counts[i] * COINS[i];
     }
     return counts;
 }
 
-// ----------------------
-// Return change
-// ----------------------
+// ----------------------------------------------------
+// Return all remaining change to the customer
+// ----------------------------------------------------
 void returnChange(int& balancePence) {
     if (balancePence <= 0) {
         std::cout << "No change to return.\n";
         return;
     }
 
-    const int total = balancePence;
-    const auto counts = makeChange(balancePence);
+    int total = balancePence;
+    auto counts = makeChange(balancePence);
     balancePence = 0;
 
     std::cout << "\n*** RETURNING CHANGE: ";
@@ -179,110 +182,99 @@ void returnChange(int& balancePence) {
     std::cout << " ***\n";
 
     for (int i = 0; i < NUM_COINS; ++i) {
-        const int coin = COINS[i];
-        const int cnt  = counts[i];
-        if (cnt > 0) {
-            std::cout << "  " << coin << "p x " << cnt << "\n";
-        }
+        if (counts[i] > 0)
+            std::cout << "  " << COINS[i] << "p x " << counts[i] << "\n";
     }
-    std::cout << "***************************************\n";
 }
 
-// ----------------------
-// Select and dispense 
-// ----------------------
+// ----------------------------------------------------
+// Handle selecting an item from the vending machine:
+// - Validate code
+// - Check stock
+// - Check if enough money
+// - Reduce balance and stock
+// ----------------------------------------------------
 void selectItem(std::vector<Item>& items, int& balancePence) {
-    std::cout << "\nEnter item code (e.g., A1). Type 'back' to cancel.\n";
+    std::cout << "\nEnter item code or 'back'.\n";
     std::cout << "Code: ";
 
     std::string code;
     if (!std::getline(std::cin, code)) return;
     if (toUpper(trim(code)) == "BACK") return;
 
-    const int idx = findItemIndexByCode(items, code);
+    // Find item
+    int idx = findItemIndexByCode(items, code);
     if (idx == -1) {
-        std::cout << "  Unknown code. Please try again.\n";
+        std::cout << "  Unknown code.\n";
         return;
     }
 
-    Item& it = items[static_cast<size_t>(idx)];
+    Item& it = items[idx];
 
+    // Check stock
     if (it.stock <= 0) {
-        std::cout << "  Sorry, " << it.name << " is out of stock.\n";
+        std::cout << "  Out of stock.\n";
         return;
     }
 
+    // Check balance
     if (balancePence < it.pricePence) {
-        const int needed = it.pricePence - balancePence;
-        std::cout << "  Insufficient funds. Need " << penceStr(needed) << " more.\n";
+        std::cout << "  Need " << penceStr(it.pricePence - balancePence) << " more.\n";
         return;
     }
 
+    // Dispense item
     balancePence -= it.pricePence;
-    it.stock -= 1;
+    it.stock--;
 
     std::cout << "\n*** DISPENSING: " << it.name << " (" << it.code << ") ***\n";
-    std::cout << "Price: " << penceStr(it.pricePence)
-              << " | Remaining balance: " << penceStr(balancePence) << "\n";
 
     if (balancePence > 0) {
-        std::cout << "Return change now? (y/n): ";
+        std::cout << "Return change? (y/n): ";
         std::string ans;
-        if (std::getline(std::cin, ans)) {
-            ans = toUpper(trim(ans));
-            if (!ans.empty() && ans[0] == 'Y') {
-                returnChange(balancePence);
-            }
-        }
+        if (std::getline(std::cin, ans) && toUpper(trim(ans)) == "Y")
+            returnChange(balancePence);
     }
 }
 
-// ----------------------
-// Main 
-// ----------------------
-int main() {
-    std::ios::sync_with_stdio(false);
-    std::cin.tie(nullptr);
 
+int main() {
+    // Initial items in the machine
     std::vector<Item> items = {
-        {"A1", "Coffee",        150, 5},
-        {"A2", "Tea",           120, 5},
-        {"B1", "Cola",          130, 6},
-        {"B2", "Orange Soda",   120, 6},
+        {"A1", "Coffee", 150, 5},
+        {"A2", "Tea", 120, 5},
+        {"B1", "Cola", 130, 6},
+        {"B2", "Orange Soda", 120, 6},
         {"C1", "Chocolate Bar", 100, 4},
-        {"D1", "Crisps (Salt)",  90, 5},
-        {"E1", "Biscuits",      110, 4}
+        {"D1", "Crisps (Salt)", 90, 5},
+        {"E1", "Biscuits", 110, 4}
     };
 
     int balancePence = 0;
-
     bool running = true;
+
+    // --- MAIN USER LOOP ---
     while (running) {
         showMenu(items, balancePence);
         std::cout << "Choose [I/S/R/Q]: ";
 
         std::string choice;
         if (!std::getline(std::cin, choice)) break;
-        choice = trim(choice);
+
         if (choice.empty()) continue;
 
-        const char c = static_cast<char>(std::toupper(static_cast<unsigned char>(choice[0])));
+        char c = static_cast<char>(std::toupper(choice[0]));
 
-        if (c == 'I') {
-            insertMoney(balancePence);
-        } else if (c == 'S') {
-            selectItem(items, balancePence);
-        } else if (c == 'R') {
-            returnChange(balancePence);
-        } else if (c == 'Q') {
-            if (balancePence > 0) {
-                std::cout << "\nYou have a remaining balance.\n";
-                returnChange(balancePence);
-            }
+        if (c == 'I') insertMoney(balancePence);
+        else if (c == 'S') selectItem(items, balancePence);
+        else if (c == 'R') returnChange(balancePence);
+        else if (c == 'Q') {
+            if (balancePence > 0) returnChange(balancePence);
             std::cout << "Goodbye!\n";
             running = false;
-        } else {
-            std::cout << "Unknown option. Please choose I, S, R or Q.\n";
+        }
+        else {
+            std::cout << "Unknown option.\n";
         }
     }
 
